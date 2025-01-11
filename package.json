@@ -1,19 +1,17 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "my-backend-project",  // Nome do seu projeto
+  "version": "1.0.0",            // Versão do seu projeto
+  "description": "A simple backend API",  // Descrição do seu projeto
+  "main": "index.js",            // Arquivo principal do seu projeto
+  "scripts": {                   // Scripts personalizados, como start, test, etc.
+    "start": "node index.js"     // Comando para iniciar a aplicação
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "express": "^4.21.2"
-  }
-  "scripts": {
-  "start": "node index.js"
-}
-
+  "dependencies": {              // Dependências do projeto
+    "express": "^4.21.2"         // Exemplo de dependência (Express)
+  },
+  "devDependencies": {           // Dependências para desenvolvimento
+    "nodemon": "^2.0.7"          // Exemplo de dependência de desenvolvimento (para hot-reload)
+  },
+  "author": "Seu Nome",          // Nome do autor do projeto
+  "license": "ISC"               // Licença do projeto
 }
