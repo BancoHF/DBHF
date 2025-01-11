@@ -1,10 +1,10 @@
 {
   "name": "my-backend-project",
   "version": "1.0.0",
-  "description": "A simple backend API",
+  "description": "A simple backend API using Express",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js"  // Script que o Railway usa para iniciar o servidor
   },
   "dependencies": {
     "express": "^4.21.2"
