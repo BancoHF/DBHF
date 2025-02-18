@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,21 +11,18 @@
         button { padding: 10px; cursor: pointer; }
         main { background: white; padding: 20px; min-height: 300px; }
         footer { border-top: 2px solid black; text-align: center; padding: 10px; }
-        #nav-menu { display: none; background: white; position: absolute; top: 50px; right: 10px; border: 1px solid black; padding: 10px; }
         .contact { border: 1px solid #ccc; padding: 10px; margin: 10px; cursor: pointer; display: flex; align-items: center; }
         .contact img { width: 50px; height: 50px; margin-right: 10px; }
         .hidden { display: none; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 400px; text-align: center; }
+        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 20px; }
+        .modal button { margin-top: 10px; }
     </style>
 </head>
 <body>
     <header>
         <h1>Página 1 - Cadastro de Contatos</h1>
-        <button onclick="toggleMenu()">Menu</button>
-        <div id="nav-menu"></div>
-    </header>
-    
-    <main>
+        <button onclick="showAddContactForm()">Adicionar Contato</button>
         <input type="text" id="search" placeholder="Buscar contatos..." onkeyup="searchContacts()">
         <button onclick="showSortOptions()">Ordenar</button>
         <div id="sort-options" class="hidden">
@@ -32,9 +30,11 @@
             <button onclick="sortContacts('city')">Por Cidade</button>
             <button onclick="sortContacts('priority')">Por Prioridade</button>
         </div>
-        <input type="file" id="uploadFile" onchange="uploadContacts()">
-        <button onclick="showAddContactForm()">Adicionar Contato</button>
-        
+        <button onclick="toggleMenu()">Menu</button>
+        <div id="nav-menu" class="hidden"></div>
+    </header>
+    
+    <main>
         <div id="contact-form" class="hidden">
             <label>Nome:</label><input type="text" id="name">
             <label>Telefone:</label><input type="text" id="phone">
@@ -42,19 +42,22 @@
             <label>Prioridade (1-5):</label><input type="number" id="priority">
             <label>Grupo:</label><input type="text" id="group">
             <label>Última Conversa:</label><input type="date" id="lastConversation">
-            <label>Foto:</label><input type="file" id="photo">
             <label>Email:</label><input type="email" id="email">
             <label>Instagram:</label><input type="text" id="instagram">
             <label>Data de Nascimento:</label><input type="date" id="birthdate">
             <label>Região:</label><input type="text" id="region">
             <label>Cargo Ministerial:</label><input type="text" id="ministerialRole">
             <label>Ministério:</label><input type="text" id="ministry">
-            <label>Documentos:</label><input type="file" id="documents" multiple>
-            <button onclick="addNewContact()">Salvar Contato</button>
+            <label>Foto:</label><input type="file" id="photo" accept="image/*">
+            <button onclick="saveContact()">Salvar Contato</button>
         </div>
-        
         <div id="contact-list"></div>
-        <div id="contact-modal" class="modal"></div>
+        <div id="contact-modal" class="modal">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div id="modal-content"></div>
+            <button onclick="editContact()">Editar Contato</button>
+            <button onclick="deleteContact()">Excluir Contato</button>
+        </div>
     </main>
     
     <footer>
@@ -63,33 +66,17 @@
     
     <script>
         let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-
-        function toggleMenu() {
-            let menu = document.getElementById("nav-menu");
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
-        }
-
-        function generateMenu() {
-            let menu = document.getElementById("nav-menu");
-            menu.innerHTML = "";
-            for (let i = 1; i <= 10; i++) {
-                menu.innerHTML += `<p><a href='pagina${i}.html'>Página ${i}</a></p>`;
-            }
-            menu.innerHTML += `<p><a href='index.html'>Página Inicial</a></p>`;
-        }
-        generateMenu();
-
-        function showSortOptions() {
-            document.getElementById("sort-options").classList.toggle("hidden");
-        }
+        let editingContactId = null;
 
         function showAddContactForm() {
             document.getElementById("contact-form").classList.toggle("hidden");
         }
 
-        function addNewContact() {
-            let newContact = {
-                id: Date.now(),
+        function saveContact() {
+            let photoFile = document.getElementById("photo").files[0];
+            let photoUrl = photoFile ? URL.createObjectURL(photoFile) : "default.jpg";
+            let contact = {
+                id: editingContactId || Date.now(),
                 name: document.getElementById("name").value,
                 phone: document.getElementById("phone").value,
                 city: document.getElementById("city").value,
@@ -102,10 +89,14 @@
                 region: document.getElementById("region").value,
                 ministerialRole: document.getElementById("ministerialRole").value,
                 ministry: document.getElementById("ministry").value,
-                photo: document.getElementById("photo").files[0] ? URL.createObjectURL(document.getElementById("photo").files[0]) : "default.jpg",
-                documents: Array.from(document.getElementById("documents").files).map(f => f.name)
+                photo: photoUrl
             };
-            contacts.push(newContact);
+            if (editingContactId) {
+                contacts = contacts.map(c => c.id === editingContactId ? contact : c);
+                editingContactId = null;
+            } else {
+                contacts.push(contact);
+            }
             localStorage.setItem("contacts", JSON.stringify(contacts));
             renderContacts();
             document.getElementById("contact-form").classList.add("hidden");
@@ -116,7 +107,7 @@
             contacts.forEach(c => {
                 let contactDiv = document.createElement("div");
                 contactDiv.className = "contact";
-                contactDiv.innerHTML = `<img src='${c.photo}'><p onclick='showContactDetails(${c.id})'>${c.name} - ${c.city} - ${c.group}</p>`;
+                contactDiv.innerHTML = `<img src='${c.photo}'><p onclick='showContactDetails(${c.id})'>${c.name} - ${c.city}</p>`;
                 document.getElementById("contact-list").appendChild(contactDiv);
             });
         }
@@ -124,10 +115,18 @@
         function showContactDetails(id) {
             let contact = contacts.find(c => c.id === id);
             let modal = document.getElementById("contact-modal");
-            modal.innerHTML = `<h2>${contact.name}</h2><p>Telefone: ${contact.phone}</p>`;
+            let modalContent = document.getElementById("modal-content");
+            modalContent.innerHTML = `<h2>${contact.name}</h2>
+                <p>Telefone: ${contact.phone}</p>
+                <p>Email: ${contact.email}</p>
+                <p>Instagram: ${contact.instagram}</p>`;
             modal.style.display = "block";
         }
 
+        function closeModal() {
+            document.getElementById("contact-modal").style.display = "none";
+        }
+        
         renderContacts();
     </script>
 </body>
