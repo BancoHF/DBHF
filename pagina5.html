@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página 5 - Mala Direta e Etiquetas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        button { padding: 10px; cursor: pointer; }
+        main { background: white; padding: 20px; min-height: 300px; }
+        .hidden { display: none; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 50%; }
+        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Página 5 - Mala Direta e Etiquetas</h1>
+    </header>
+    
+    <main>
+        <button onclick="showMailingForm()">Criar Mala Direta</button>
+        
+        <div id="mailing-form" class="hidden">
+            <label>Nome da Mala Direta:</label>
+            <input type="text" id="mailingName">
+            <label>Selecionar Contato:</label>
+            <select id="contactSelect"></select>
+            <button onclick="addMailing()">Salvar Mala Direta</button>
+        </div>
+        
+        <div id="mailing-list"></div>
+        
+        <div id="mailing-modal" class="modal">
+            <button class="close-btn" onclick="closeModal()">X</button>
+            <div id="modal-content"></div>
+        </div>
+    </main>
+    
+    <script>
+        function showMailingForm() {
+            document.getElementById("mailing-form").classList.toggle("hidden");
+            loadContacts();
+        }
+
+        function loadContacts() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let select = document.getElementById("contactSelect");
+            select.innerHTML = contacts.map(contact => <option value="${contact.name}">${contact.name}</option>).join('');
+        }
+
+        function addMailing() {
+            let mailingName = document.getElementById("mailingName").value;
+            let contact = document.getElementById("contactSelect").value;
+            
+            if (!mailingName) {
+                alert("Por favor, insira um nome para a mala direta.");
+                return;
+            }
+            
+            let mailings = JSON.parse(localStorage.getItem("mailings")) || [];
+            mailings.push({ mailingName, contact });
+            localStorage.setItem("mailings", JSON.stringify(mailings));
+            document.getElementById("mailing-form").classList.add("hidden");
+            loadMailings();
+        }
+
+        function loadMailings() {
+            let mailingList = document.getElementById("mailing-list");
+            mailingList.innerHTML = "";
+            let mailings = JSON.parse(localStorage.getItem("mailings")) || [];
+            
+            mailings.forEach((mail, index) => {
+                let div = document.createElement("div");
+                div.innerHTML = <strong>${mail.contact}</strong> - ${mail.mailingName} <button onclick="showMailingDetails(${index})">Abrir</button>;
+                mailingList.appendChild(div);
+            });
+        }
+
+        function showMailingDetails(index) {
+            let mailings = JSON.parse(localStorage.getItem("mailings")) || [];
+            let mail = mailings[index];
+            
+            let modalContent = document.getElementById("modal-content");
+            modalContent.innerHTML = <h3>${mail.mailingName}</h3><p>Vinculado a: ${mail.contact}</p>;
+            
+            document.getElementById("mailing-modal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("mailing-modal").style.display = "none";
+        }
+
+        window.onload = function() {
+            loadContacts();
+            loadMailings();
+        };
+    </script>
+</body>
+</html>
