@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página 4 - Gestão de Documentos</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        button { padding: 10px; cursor: pointer; }
+        main { background: white; padding: 20px; min-height: 300px; }
+        .hidden { display: none; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 50%; }
+        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Página 4 - Gestão de Documentos</h1>
+    </header>
+    
+    <main>
+        <button onclick="showAddDocumentForm()">Adicionar Documento</button>
+        
+        <div id="document-form" class="hidden">
+            <label>Nome do Arquivo:</label>
+            <input type="text" id="docName">
+            <label>Selecionar Arquivo:</label>
+            <input type="file" id="docFile">
+            <label>Vincular ao Contato:</label>
+            <select id="contactSelect"></select>
+            <button onclick="addDocument()">Salvar Documento</button>
+        </div>
+        
+        <div id="document-list"></div>
+        
+        <div id="document-modal" class="modal">
+            <button class="close-btn" onclick="closeModal()">X</button>
+            <div id="modal-content"></div>
+        </div>
+    </main>
+    
+    <script>
+        function showAddDocumentForm() {
+            document.getElementById("document-form").classList.toggle("hidden");
+            loadContacts();
+        }
+
+        function loadContacts() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let select = document.getElementById("contactSelect");
+            select.innerHTML = contacts.map(contact => <option value="${contact.name}">${contact.name}</option>).join('');
+        }
+
+        function addDocument() {
+            let docName = document.getElementById("docName").value;
+            let docFile = document.getElementById("docFile").files[0];
+            let contact = document.getElementById("contactSelect").value;
+            let fileData = null;
+            
+            if (docFile) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    fileData = e.target.result;
+                    saveDocument({ docName, contact, fileData, fileType: docFile.type });
+                };
+                reader.readAsDataURL(docFile);
+            }
+        }
+
+        function saveDocument(document) {
+            let documents = JSON.parse(localStorage.getItem("documents")) || [];
+            documents.push(document);
+            localStorage.setItem("documents", JSON.stringify(documents));
+            document.getElementById("document-form").classList.add("hidden");
+            loadDocuments();
+        }
+
+        function loadDocuments() {
+            let documentList = document.getElementById("document-list");
+            documentList.innerHTML = "";
+            let documents = JSON.parse(localStorage.getItem("documents")) || [];
+            
+            documents.forEach((doc, index) => {
+                let div = document.createElement("div");
+                div.innerHTML = <strong>${doc.contact}</strong> - ${doc.docName} <button onclick="showDocumentDetails(${index})">Abrir</button>;
+                documentList.appendChild(div);
+            });
+        }
+
+        function showDocumentDetails(index) {
+            let documents = JSON.parse(localStorage.getItem("documents")) || [];
+            let document = documents[index];
+            
+            let modalContent = document.getElementById("modal-content");
+            modalContent.innerHTML = <h3>${document.docName}</h3><p>Vinculado a: ${document.contact}</p>;
+            modalContent.innerHTML += <a href="${document.fileData}" download="${document.docName}">Baixar Arquivo</a>;
+            
+            document.getElementById("document-modal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("document-modal").style.display = "none";
+        }
+
+        window.onload = function() {
+            loadContacts();
+            loadDocuments();
+        };
+    </script>
+</body>
+</html>
