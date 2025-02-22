@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página 3 - Cadastro de Atendimento</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        button { padding: 10px; cursor: pointer; }
+        main { background: white; padding: 20px; min-height: 300px; }
+        .hidden { display: none; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 50%; }
+        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Página 3 - Cadastro de Atendimento</h1>
+    </header>
+    
+    <main>
+        <input type="text" id="search" placeholder="Buscar por contato ou protocolo" onkeyup="searchAtendimentos()">
+        <button onclick="showAddAtendimentoForm()">Adicionar Atendimento</button>
+        
+        <div id="atendimento-form" class="hidden">
+            <label>Contato:</label>
+            <select id="contactSelect"></select>
+            <label>Título:</label>
+            <input type="text" id="titulo">
+            <label>Descrição:</label>
+            <textarea id="descricao"></textarea>
+            <label>Upload de PDF:</label>
+            <input type="file" id="pdfFile" accept="application/pdf">
+            <button onclick="addAtendimento()">Salvar Atendimento</button>
+        </div>
+        
+        <div id="atendimento-list"></div>
+        
+        <div id="atendimento-modal" class="modal">
+            <button class="close-btn" onclick="closeModal()">X</button>
+            <div id="modal-content"></div>
+        </div>
+    </main>
+    
+    <script>
+        function showAddAtendimentoForm() {
+            document.getElementById("atendimento-form").classList.toggle("hidden");
+            loadContacts();
+        }
+        
+        function generateProtocol() {
+            return 'PROTO-' + Math.floor(100000 + Math.random() * 900000);
+        }
+        
+        function loadContacts() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let select = document.getElementById("contactSelect");
+            select.innerHTML = contacts.map(contact => <option value="${contact.name}">${contact.name}</option>).join('');
+        }
+        
+        function addAtendimento() {
+            let contact = document.getElementById("contactSelect").value;
+            let titulo = document.getElementById("titulo").value;
+            let descricao = document.getElementById("descricao").value;
+            let protocolo = generateProtocol();
+            let pdfFile = document.getElementById("pdfFile").files[0];
+            let pdfData = null;
+            
+            if (pdfFile) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    pdfData = e.target.result;
+                    saveAtendimento({ contact, titulo, descricao, protocolo, pdfData });
+                };
+                reader.readAsDataURL(pdfFile);
+            } else {
+                saveAtendimento({ contact, titulo, descricao, protocolo, pdfData });
+            }
+        }
+        
+        function saveAtendimento(atendimento) {
+            let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            atendimentos.push(atendimento);
+            localStorage.setItem("atendimentos", JSON.stringify(atendimentos));
+            document.getElementById("atendimento-form").classList.add("hidden");
+            loadAtendimentos();
+        }
+        
+        function loadAtendimentos() {
+            let atendimentoList = document.getElementById("atendimento-list");
+            atendimentoList.innerHTML = "";
+            let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            
+            atendimentos.forEach((at, index) => {
+                let div = document.createElement("div");
+                div.innerHTML = <strong>${at.contact}</strong> - ${at.protocolo} <button onclick="markAsDone(${index})">✔</button>;
+                div.onclick = () => showAtendimentoDetails(index);
+                atendimentoList.appendChild(div);
+            });
+        }
+        
+        function markAsDone(index) {
+            let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            atendimentos.splice(index, 1);
+            localStorage.setItem("atendimentos", JSON.stringify(atendimentos));
+            loadAtendimentos();
+        }
+        
+        function showAtendimentoDetails(index) {
+            let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            let atendimento = atendimentos[index];
+            
+            let modalContent = document.getElementById("modal-content");
+            modalContent.innerHTML = <h3>${atendimento.titulo}</h3><p>${atendimento.descricao}</p>;
+            
+            if (atendimento.pdfData) {
+                modalContent.innerHTML += <a href="${atendimento.pdfData}" download="Atendimento.pdf">Baixar PDF</a>;
+            }
+            
+            document.getElementById("atendimento-modal").style.display = "block";
+        }
+        
+        function closeModal() {
+            document.getElementById("atendimento-modal").style.display = "none";
+        }
+        
+        function searchAtendimentos() {
+            let searchText = document.getElementById("search").value.toLowerCase();
+            let atendimentos = JSON.parse(localStorage.getItem("atendimentos")) || [];
+            let atendimentoList = document.getElementById("atendimento-list");
+            atendimentoList.innerHTML = "";
+            
+            atendimentos.filter(at => at.contact.toLowerCase().includes(searchText) || at.protocolo.toLowerCase().includes(searchText)).forEach((at, index) => {
+                let div = document.createElement("div");
+                div.innerHTML = <strong>${at.contact}</strong> - ${at.protocolo} <button onclick="markAsDone(${index})">✔</button>;
+                div.onclick = () => showAtendimentoDetails(index);
+                atendimentoList.appendChild(div);
+            });
+        }
+        
+        window.onload = function() {
+            loadContacts();
+            loadAtendimentos();
+        };
+    </script>
+</body>
+</html>
