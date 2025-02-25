@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,127 +6,107 @@
     <title>Página 1 - Cadastro de Contatos</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        header { background: navy; color: white; padding: 15px; display: flex; justify-content:space-between; align-items: center; }
         button { padding: 10px; cursor: pointer; }
         main { background: white; padding: 20px; min-height: 300px; }
-        footer { border-top: 2px solid black; text-align: center; padding: 10px; }
-        .contact { border: 1px solid #ccc; padding: 10px; margin: 10px; cursor: pointer; display: flex; align-items: center; }
-        .contact img { width: 50px; height: 50px; margin-right: 10px; }
         .hidden { display: none; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 400px; text-align: center; }
-        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 20px; }
-        .modal button { margin-top: 10px; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 50%; }
+        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
+        .contact-card { border: 1px solid #ccc; padding: 10px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; }
+        .highlight { background: red; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
     <header>
         <h1>Página 1 - Cadastro de Contatos</h1>
-        <button onclick="showAddContactForm()">Adicionar Contato</button>
-        <input type="text" id="search" placeholder="Buscar contatos..." onkeyup="searchContacts()">
-        <button onclick="showSortOptions()">Ordenar</button>
-        <div id="sort-options" class="hidden">
-            <button onclick="sortContacts('name')">Por Nome</button>
-            <button onclick="sortContacts('city')">Por Cidade</button>
-            <button onclick="sortContacts('priority')">Por Prioridade</button>
-        </div>
         <button onclick="toggleMenu()">Menu</button>
-        <div id="nav-menu" class="hidden"></div>
     </header>
-    
     <main>
-        <div id="contact-form" class="hidden">
-            <label>Nome:</label><input type="text" id="name">
-            <label>Telefone:</label><input type="text" id="phone">
-            <label>Cidade:</label><input type="text" id="city">
-            <label>Prioridade (1-5):</label><input type="number" id="priority">
-            <label>Grupo:</label><input type="text" id="group">
-            <label>Última Conversa:</label><input type="date" id="lastConversation">
-            <label>Email:</label><input type="email" id="email">
-            <label>Instagram:</label><input type="text" id="instagram">
-            <label>Data de Nascimento:</label><input type="date" id="birthdate">
-            <label>Região:</label><input type="text" id="region">
-            <label>Cargo Ministerial:</label><input type="text" id="ministerialRole">
-            <label>Ministério:</label><input type="text" id="ministry">
-            <label>Foto:</label><input type="file" id="photo" accept="image/*">
-            <button onclick="saveContact()">Salvar Contato</button>
-        </div>
+        <input type="text" id="search" placeholder="Pesquisar contatos..." onkeyup="searchContacts()">
+        <button onclick="sortContacts()">Ordenar A-Z</button>
+        <button onclick="openAddContactModal()">Cadastrar Contato</button>
         <div id="contact-list"></div>
-        <div id="contact-modal" class="modal">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div id="modal-content"></div>
-            <button onclick="editContact()">Editar Contato</button>
-            <button onclick="deleteContact()">Excluir Contato</button>
-        </div>
+        <div id="highlight-list" class="highlight hidden"></div>
     </main>
-    
-    <footer>
-        <p>© 2025 BDHF - Todos os direitos reservados.</p>
-    </footer>
-    
+
+    <div id="add-contact-modal" class="modal">
+        <button class="close-btn" onclick="closeAddContactModal()">X</button>
+        <h2>Adicionar Contato</h2>
+        <label>Nome</label><input type="text" id="name">
+        <label>Telefone</label><input type="text" id="phone">
+        <label>E-mail</label><input type="text" id="email">
+        <label>Instagram</label><input type="text" id="instagram">
+        <label>Cidade</label><input type="text" id="city">
+        <label>Prioridade (1 a 5)</label><input type="number" id="priority">
+        <label>Data de Nascimento</label><input type="date" id="birthDate">
+        <label>Última Conversa</label><input type="date" id="lastConversation">
+        <label>Cargo Ministerial</label><input type="text" id="ministerialPosition">
+        <label>Ministério</label><input type="text" id="ministry">
+        <button onclick="addContact()">Salvar Contato</button>
+    </div>
+
     <script>
-        let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-        let editingContactId = null;
+        let selectedContactIndex = null;
 
-        function showAddContactForm() {
-            document.getElementById("contact-form").classList.toggle("hidden");
-        }
+        function loadContacts() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let list = document.getElementById("contact-list");
+            list.innerHTML = "";
+            let today = new Date();
 
-        function saveContact() {
-            let photoFile = document.getElementById("photo").files[0];
-            let photoUrl = photoFile ? URL.createObjectURL(photoFile) : "default.jpg";
-            let contact = {
-                id: editingContactId || Date.now(),
-                name: document.getElementById("name").value,
-                phone: document.getElementById("phone").value,
-                city: document.getElementById("city").value,
-                priority: document.getElementById("priority").value,
-                group: document.getElementById("group").value,
-                lastConversation: document.getElementById("lastConversation").value,
-                email: document.getElementById("email").value,
-                instagram: document.getElementById("instagram").value,
-                birthdate: document.getElementById("birthdate").value,
-                region: document.getElementById("region").value,
-                ministerialRole: document.getElementById("ministerialRole").value,
-                ministry: document.getElementById("ministry").value,
-                photo: photoUrl
-            };
-            if (editingContactId) {
-                contacts = contacts.map(c => c.id === editingContactId ? contact : c);
-                editingContactId = null;
-            } else {
-                contacts.push(contact);
-            }
-            localStorage.setItem("contacts", JSON.stringify(contacts));
-            renderContacts();
-            document.getElementById("contact-form").classList.add("hidden");
-        }
+            contacts.forEach((contact, index) => {
+                let lastConvDate = new Date(contact.lastConversation);
+                let diffDays = Math.floor((today - lastConvDate) / (1000 * 60 * 60 * 24));
+                let highlightClass = diffDays > 15 ? "highlight" : "";
 
-        function renderContacts() {
-            document.getElementById("contact-list").innerHTML = "";
-            contacts.forEach(c => {
-                let contactDiv = document.createElement("div");
-                contactDiv.className = "contact";
-                contactDiv.innerHTML = `<img src='${c.photo}'><p onclick='showContactDetails(${c.id})'>${c.name} - ${c.city}</p>`;
-                document.getElementById("contact-list").appendChild(contactDiv);
+                let contactElement = document.createElement("div");
+                contactElement.className = `contact-card ${highlightClass}`;
+                contactElement.innerHTML = `
+                    <span><strong>${contact.name}</strong> - ${contact.city}</span>
+                    <div>
+                        <button onclick="openContactInfoModal(${index})">Info</button>
+                        <button onclick="editContact(${index})">Editar</button>
+                        <button onclick="deleteContact(${index})">Excluir</button>
+                    </div>
+                `;
+                list.appendChild(contactElement);
             });
         }
 
-        function showContactDetails(id) {
-            let contact = contacts.find(c => c.id === id);
-            let modal = document.getElementById("contact-modal");
-            let modalContent = document.getElementById("modal-content");
-            modalContent.innerHTML = `<h2>${contact.name}</h2>
-                <p>Telefone: ${contact.phone}</p>
-                <p>Email: ${contact.email}</p>
-                <p>Instagram: ${contact.instagram}</p>`;
-            modal.style.display = "block";
+        function openContactInfoModal(index) {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let contact = contacts[index];
+            selectedContactIndex = index;
+            alert(`Detalhes do contato:\nNome: ${contact.name}\nTelefone: <a href='https://wa.me/${contact.phone}' target='_blank'>${contact.phone}</a>\nEmail: <a href='mailto:${contact.email}'>${contact.email}</a>\nInstagram: <a href='https://instagram.com/${contact.instagram}' target='_blank'>${contact.instagram}</a>\nCidade: ${contact.city}\nPrioridade: ${contact.priority}\nData de Nascimento: ${contact.birthDate}\nÚltima Conversa: ${contact.lastConversation}\nCargo Ministerial: ${contact.ministerialPosition}\nMinistério: ${contact.ministry}`);
         }
 
-        function closeModal() {
-            document.getElementById("contact-modal").style.display = "none";
+        function deleteContact(index) {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            contacts.splice(index, 1);
+            localStorage.setItem("contacts", JSON.stringify(contacts));
+            loadContacts();
         }
-        
-        renderContacts();
+
+        function sortContacts() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            contacts.sort((a, b) => a.name.localeCompare(b.name));
+            localStorage.setItem("contacts", JSON.stringify(contacts));
+            loadContacts();
+        }
+
+        function openAddContactModal() {
+            document.getElementById("add-contact-modal").style.display = "block";
+        }
+
+        function closeAddContactModal() {
+            document.getElementById("add-contact-modal").style.display = "none";
+        }
+
+        function toggleMenu() {
+            document.getElementById("menu").classList.toggle("hidden");
+        }
+
+        document.addEventListener("DOMContentLoaded", loadContacts);
     </script>
 </body>
 </html>
