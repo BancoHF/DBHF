@@ -6,19 +6,21 @@
     <title>Página 1 - Cadastro de Contatos</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        header { background: navy; color: white; padding: 15px; display: flex; justify-content:space-between; align-items: center; }
+        header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
         button { padding: 10px; cursor: pointer; }
-        main { background: white; padding: 20px; min-height: 300px; }
+        main { background: white; padding: 20px; min-height: 300px; color: navy; }
+        footer { border-top: 2px solid black; text-align: center; padding: 10px; }
         .hidden { display: none; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 50%; }
-        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
-        .contact-card { border: 1px solid #ccc; padding: 10px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; }
-        .highlight { background: red; color: white; font-weight: bold; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); width: 50%; display: none; border-radius: 10px; }
+        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; border-radius: 5px; }
+        .contact-card { border: 1px solid #ccc; padding: 10px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; background: #f4f4f4; border-radius: 5px; }
+        .highlight { background: red; color: white; font-weight: bold; padding: 5px; border-radius: 5px; }
+        .contact-info { padding: 10px; color: navy; }
     </style>
 </head>
 <body>
     <header>
-        <h1>Página 1 - Cadastro de Contatos</h1>
+        <h1>Contatos</h1>
         <button onclick="toggleMenu()">Menu</button>
     </header>
     <main>
@@ -26,75 +28,39 @@
         <button onclick="sortContacts()">Ordenar A-Z</button>
         <button onclick="openAddContactModal()">Cadastrar Contato</button>
         <div id="contact-list"></div>
-        <div id="highlight-list" class="highlight hidden"></div>
     </main>
-
+ <footer>
+            <p>© 2025 Segue lá - https://www.instagram.com/_david__amorim_?igsh=MXJkMXcyNTg4bThjcw==
+            je can speak six langues, pero ich non facio isso funktionieren!</p>
+        </footer>
     <div id="add-contact-modal" class="modal">
         <button class="close-btn" onclick="closeAddContactModal()">X</button>
         <h2>Adicionar Contato</h2>
         <label>Nome</label><input type="text" id="name">
         <label>Telefone</label><input type="text" id="phone">
-        <label>E-mail</label><input type="text" id="email">
+        <label>E-mail</label><input type="email" id="email">
         <label>Instagram</label><input type="text" id="instagram">
         <label>Cidade</label><input type="text" id="city">
-        <label>Prioridade (1 a 5)</label><input type="number" id="priority">
+        <label>Prioridade (1 a 5)</label><input type="number" id="priority" min="1" max="5">
         <label>Data de Nascimento</label><input type="date" id="birthDate">
         <label>Última Conversa</label><input type="date" id="lastConversation">
         <label>Cargo Ministerial</label><input type="text" id="ministerialPosition">
         <label>Ministério</label><input type="text" id="ministry">
-        <button onclick="addContact()">Salvar Contato</button>
+        <label>Grupo</label><input type="text" id="group">
+        <button onclick="saveContact()">Salvar Contato</button>
+    </div>
+
+    <div id="contact-info-modal" class="modal">
+        <button class="close-btn" onclick="closeContactInfoModal()">:)</button>
+        <h2>Detalhes do Contato</h2>
+        <div id="contact-info" class="contact-info"></div>
     </div>
 
     <script>
-        let selectedContactIndex = null;
-
-        function loadContacts() {
-            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            let list = document.getElementById("contact-list");
-            list.innerHTML = "";
-            let today = new Date();
-
-            contacts.forEach((contact, index) => {
-                let lastConvDate = new Date(contact.lastConversation);
-                let diffDays = Math.floor((today - lastConvDate) / (1000 * 60 * 60 * 24));
-                let highlightClass = diffDays > 15 ? "highlight" : "";
-
-                let contactElement = document.createElement("div");
-                contactElement.className = `contact-card ${highlightClass}`;
-                contactElement.innerHTML = `
-                    <span><strong>${contact.name}</strong> - ${contact.city}</span>
-                    <div>
-                        <button onclick="openContactInfoModal(${index})">Info</button>
-                        <button onclick="editContact(${index})">Editar</button>
-                        <button onclick="deleteContact(${index})">Excluir</button>
-                    </div>
-                `;
-                list.appendChild(contactElement);
-            });
-        }
-
-        function openContactInfoModal(index) {
-            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            let contact = contacts[index];
-            selectedContactIndex = index;
-            alert(`Detalhes do contato:\nNome: ${contact.name}\nTelefone: <a href='https://wa.me/${contact.phone}' target='_blank'>${contact.phone}</a>\nEmail: <a href='mailto:${contact.email}'>${contact.email}</a>\nInstagram: <a href='https://instagram.com/${contact.instagram}' target='_blank'>${contact.instagram}</a>\nCidade: ${contact.city}\nPrioridade: ${contact.priority}\nData de Nascimento: ${contact.birthDate}\nÚltima Conversa: ${contact.lastConversation}\nCargo Ministerial: ${contact.ministerialPosition}\nMinistério: ${contact.ministry}`);
-        }
-
-        function deleteContact(index) {
-            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            contacts.splice(index, 1);
-            localStorage.setItem("contacts", JSON.stringify(contacts));
-            loadContacts();
-        }
-
-        function sortContacts() {
-            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            contacts.sort((a, b) => a.name.localeCompare(b.name));
-            localStorage.setItem("contacts", JSON.stringify(contacts));
-            loadContacts();
-        }
+        let editIndex = null;
 
         function openAddContactModal() {
+            editIndex = null;
             document.getElementById("add-contact-modal").style.display = "block";
         }
 
@@ -102,8 +68,81 @@
             document.getElementById("add-contact-modal").style.display = "none";
         }
 
-        function toggleMenu() {
-            document.getElementById("menu").classList.toggle("hidden");
+        function saveContact() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let newContact = {
+                name: document.getElementById("name").value,
+                phone: document.getElementById("phone").value,
+                email: document.getElementById("email").value,
+                instagram: document.getElementById("instagram").value,
+                city: document.getElementById("city").value,
+                priority: document.getElementById("priority").value,
+                birthDate: document.getElementById("birthDate").value,
+                lastConversation: document.getElementById("lastConversation").value,
+                ministerialPosition: document.getElementById("ministerialPosition").value,
+                ministry: document.getElementById("ministry").value,
+                group: document.getElementById("group").value
+            };
+            
+            if (editIndex !== null) {
+                contacts[editIndex] = newContact;
+            } else {
+                contacts.push(newContact);
+            }
+            
+            localStorage.setItem("contacts", JSON.stringify(contacts));
+            closeAddContactModal();
+            loadContacts();
+        }
+
+        function loadContacts() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let contactList = document.getElementById("contact-list");
+            contactList.innerHTML = "";
+            contacts.forEach((contact, index) => {
+                contactList.innerHTML += `
+                    <div class="contact-card">
+                        <div>
+                            <strong>${contact.name}</strong> - ${contact.city} - ${contact.ministerialPosition}
+                        </div>
+                        <div>
+                            <button onclick="openContactInfoModal(${index})">Info</button>
+                            <button onclick="editContact(${index})">Atualizar</button>
+                            <button onclick="deleteContact(${index})">Excluir</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function editContact(index) {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let contact = contacts[index];
+            document.getElementById("name").value = contact.name;
+            document.getElementById("phone").value = contact.phone;
+            document.getElementById("email").value = contact.email;
+            document.getElementById("instagram").value = contact.instagram;
+            document.getElementById("city").value = contact.city;
+            document.getElementById("priority").value = contact.priority;
+            document.getElementById("birthDate").value = contact.birthDate;
+            document.getElementById("lastConversation").value = contact.lastConversation;
+            document.getElementById("ministerialPosition").value = contact.ministerialPosition;
+            document.getElementById("ministry").value = contact.ministry;
+            document.getElementById("group").value = contact.group;
+            
+            editIndex = index;
+            openAddContactModal();
+        }
+
+        function openContactInfoModal(index) {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let contact = contacts[index];
+            document.getElementById("contact-info").innerHTML = JSON.stringify(contact, null, 2);
+            document.getElementById("contact-info-modal").style.display = "block";
+        }
+
+        function closeContactInfoModal() {
+            document.getElementById("contact-info-modal").style.display = "none";
         }
 
         document.addEventListener("DOMContentLoaded", loadContacts);
