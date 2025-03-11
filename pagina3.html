@@ -129,6 +129,19 @@
         document.addEventListener("DOMContentLoaded", () => {
             loadRecords();
         });
+        function searchMessages() {
+    let input = document.getElementById("searchInput").value.toLowerCase();
+    let messages = document.querySelectorAll(".record-card");
+    messages.forEach(msg => {
+        let text = msg.innerText.toLowerCase();
+        if (text.includes(input)) {
+            msg.style.display = "flex";
+        } else {
+            msg.style.display = "none";
+        }
+    });
+}
+
     </script>
 </body>
 </html>
