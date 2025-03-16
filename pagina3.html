@@ -9,11 +9,14 @@
         header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
         button { padding: 10px; cursor: pointer; }
         main { background: white; padding: 20px; min-height: 300px; }
-        .hidden { display: none; }
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 50%; border-radius: 10px; }
         .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
         .record-card { border: 1px solid #ccc; padding: 10px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; }
         .modal input, .modal select, .modal textarea { display: block; width: 100%; margin-bottom: 10px; padding: 5px; }
+        nav { background: navy; color: white; padding: 10px; display: none; }
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav ul li { margin: 5px 0; }
+        nav ul li a { color: white; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -22,12 +25,7 @@
         <button onclick="toggleMenu()">Menu</button>
     </header>
     
-    <nav id="menu" class="hidden">
-        <ul>
-            <li><a href="pagina1.html">Cadastro de Contatos</a></li>
-            <li><a href="pagina3.html">Gestão de Documentos</a></li>
-        </ul>
-    </nav>
+    <nav id="menu"></nav>
     
     <main>
         <input type="text" id="search" placeholder="Pesquisar atendimentos..." onkeyup="searchRecords()">
@@ -60,11 +58,35 @@
 
     <script>
         function toggleMenu() {
-            document.getElementById("menu").classList.toggle("hidden");
+            let menu = document.getElementById("menu");
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+            } else {
+                menu.style.display = "block";
+            }
+        }
+
+        function loadMenu() {
+            document.getElementById("menu").innerHTML = `
+                <ul>
+                    <li><a href="index.html">Página Inicial</a></li>
+                    <li><a href="pagina1.html">Cadastro de Contatos</a></li>
+                    <li><a href="pagina2.html">Página de Atendimentos</a></li>
+                    <li><a href="pagina3.html">Gestão de Documentos</a></li>
+                    <li><a href="pagina4.html">Relatórios</a></li>
+                    <li><a href="pagina5.html">Configurações</a></li>
+                    <li><a href="pagina6.html">Usuários</a></li>
+                    <li><a href="pagina7.html">Notificações</a></li>
+                    <li><a href="pagina8.html">Suporte</a></li>
+                    <li><a href="pagina9.html">Sobre</a></li>
+                    <li><a href="pagina10.html">Ajuda</a></li>
+                </ul>
+            `;
         }
 
         function openAddRecordModal() {
             document.getElementById("add-record-modal").style.display = "block";
+            loadContacts();
         }
 
         function closeAddRecordModal() {
@@ -73,6 +95,18 @@
 
         function closeInfoModal() {
             document.getElementById("info-modal").style.display = "none";
+        }
+
+        function loadContacts() {
+            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            let select = document.getElementById("contactSelect");
+            select.innerHTML = "";
+            contacts.forEach(contact => {
+                let option = document.createElement("option");
+                option.value = contact;
+                option.textContent = contact;
+                select.appendChild(option);
+            });
         }
 
         function addRecord() {
@@ -113,35 +147,21 @@
             let records = JSON.parse(localStorage.getItem("records")) || [];
             let record = records.find(r => r.id === id);
             if (record) {
-                let content = document.getElementById("info-content");
-                content.innerHTML = `
+                document.getElementById("info-content").innerHTML = `
                     <p><strong>Protocolo:</strong> ${record.protocol}</p>
                     <p><strong>Nome:</strong> ${record.name}</p>
                     <p><strong>Contato:</strong> ${record.contact}</p>
                     <p><strong>Data:</strong> ${record.date}</p>
                     <p><strong>Detalhes:</strong> ${record.details}</p>
-                    <p><strong>Arquivo:</strong> ${record.fileName ? `<a href="${record.fileUrl}" download="${record.fileName}">${record.fileName}</a>` : "Nenhum"}</p>
                 `;
                 document.getElementById("info-modal").style.display = "block";
             }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            loadMenu();
             loadRecords();
         });
-        function searchMessages() {
-    let input = document.getElementById("searchInput").value.toLowerCase();
-    let messages = document.querySelectorAll(".record-card");
-    messages.forEach(msg => {
-        let text = msg.innerText.toLowerCase();
-        if (text.includes(input)) {
-            msg.style.display = "flex";
-        } else {
-            msg.style.display = "none";
-        }
-    });
-}
-
     </script>
 </body>
 </html>
