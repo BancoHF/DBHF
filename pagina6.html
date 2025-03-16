@@ -7,13 +7,18 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
         header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        button { padding: 10px; cursor: pointer; }
+        button { padding: 10px; cursor: pointer; margin-right: 5px; }
         main { background: white; padding: 20px; min-height: 300px; }
         .hidden { display: none; }
         .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); width: 50%; border-radius: 10px; display: none; }
         .modal::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: -1; }
         .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
         .record-card { border: 1px solid #ccc; padding: 10px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; }
+        .record-actions { display: flex; gap: 5px; }
+        nav { background: navy; color: white; padding: 10px; display: none; }
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav ul li { margin: 5px 0; }
+        nav ul li a { color: white; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -22,16 +27,10 @@
         <button onclick="toggleMenu()">Menu</button>
     </header>
     
-    <nav id="menu" class="hidden">
-        <ul>
-            <li><a href="pagina1.html">Cadastro de Contatos</a></li>
-        </ul>
-    </nav>
+    <nav id="menu"></nav>
     
     <main>
-        <!-- Barra de pesquisa adicionada -->
         <input type="text" id="search" placeholder="Buscar mensagem..." style="padding: 10px; width: calc(100% - 20px); margin-bottom: 10px;">
-        
         <button onclick="openMessageModal()">Enviar Mensagem</button>
         <div id="message-list"></div>
     </main>
@@ -40,7 +39,7 @@
         <button class="close-btn" onclick="closeMessageModal()">X</button>
         <h2>Enviar Mensagem</h2>
         <label>Contato</label>
-        <select id="contactSelect"></select>
+        <select id="contactSelect" onchange="fillContactInfo()"></select>
         <label>Mensagem</label>
         <textarea id="messageText"></textarea>
         <button onclick="sendWhatsApp()">Enviar via WhatsApp</button>
@@ -54,8 +53,29 @@
     </div>
 
     <script>
+        let contacts = [];
+
         function toggleMenu() {
-            document.getElementById("menu").classList.toggle("hidden");
+            let menu = document.getElementById("menu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
+
+        function loadMenu() {
+            document.getElementById("menu").innerHTML = `
+               <ul>
+                    <li><a href="index.html">Página Inicial</a></li>
+                    <li><a href="pagina1.html">Cadastro de Contatos</a></li>
+                    <li><a href="pagina2.html">Página de Atendimentos</a></li>
+                    <li><a href="pagina3.html">Gestão de Documentos</a></li>
+                    <li><a href="pagina4.html">Relatórios</a></li>
+                    <li><a href="pagina5.html">Configurações</a></li>
+                    <li><a href="pagina6.html">Envio de mensagens</a></li>
+                    <li><a href="pagina7.html">Notificações</a></li>
+                    <li><a href="pagina8.html">Suporte</a></li>
+                    <li><a href="pagina9.html">Sobre</a></li>
+                    <li><a href="pagina10.html">Ajuda</a></li>
+                </ul>
+            `;
         }
 
         function openMessageModal() {
@@ -72,24 +92,28 @@
 
         function sendMessage(mode) {
             let messages = JSON.parse(localStorage.getItem("messages")) || [];
-            let contact = document.getElementById("contactSelect").value;
+            let selectedContact = contacts.find(c => c.name === document.getElementById("contactSelect").value);
             let message = document.getElementById("messageText").value;
+
             let newMessage = {
                 id: Math.floor(10000 + Math.random() * 90000),
-                contact: contact,
+                contact: selectedContact.name,
+                phone: selectedContact.phone,
+                email: selectedContact.email,
                 message: message,
                 mode: mode,
                 date: new Date().toLocaleString()
             };
+
             messages.push(newMessage);
             localStorage.setItem("messages", JSON.stringify(messages));
             closeMessageModal();
             loadMessages();
             
             if (mode === "WhatsApp") {
-                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
+                window.open(`https://wa.me/${selectedContact.phone}?text=${encodeURIComponent(message)}`, "_blank");
             } else if (mode === "E-mail") {
-                window.open(`mailto:?subject=Mensagem&body=${encodeURIComponent(message)}`);
+                window.open(`mailto:${selectedContact.email}?subject=Mensagem&body=${encodeURIComponent(message)}`);
             }
         }
 
@@ -110,11 +134,15 @@
                 if (message.contact.toLowerCase().includes(filter.toLowerCase()) ||
                     message.message.toLowerCase().includes(filter.toLowerCase()) ||
                     message.mode.toLowerCase().includes(filter.toLowerCase())) {
+                    
                     let messageElement = document.createElement("div");
                     messageElement.className = "record-card";
-                    messageElement.innerHTML = `<span><strong>${message.contact}</strong> - ${message.mode}</span>
-                                              <button onclick="viewMessage(${message.id})">Info</button>
-                                              <button onclick="deleteMessage(${message.id})" style="background:red; color:white;">Excluir</button>`;
+                    messageElement.innerHTML = `
+                        <span><strong>${message.contact}</strong> - ${message.mode}</span>
+                        <div class="record-actions">
+                            <button onclick="viewMessage(${message.id})">Info</button>
+                            <button onclick="deleteMessage(${message.id})" style="background:red; color:white;">Excluir</button>
+                        </div>`;
                     list.appendChild(messageElement);
                 }
             });
@@ -125,6 +153,8 @@
             let message = messages.find(m => m.id === id);
             let content = document.getElementById("info-content");
             content.innerHTML = `<p><strong>Contato:</strong> ${message.contact}</p>
+                                <p><strong>Telefone:</strong> ${message.phone}</p>
+                                <p><strong>Email:</strong> ${message.email}</p>
                                 <p><strong>Mensagem:</strong> ${message.message}</p>
                                 <p><strong>Modo:</strong> ${message.mode}</p>
                                 <p><strong>Data:</strong> ${message.date}</p>`;
@@ -139,7 +169,7 @@
         }
 
         function loadContacts() {
-            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+            contacts = JSON.parse(localStorage.getItem("contacts")) || [];
             let select = document.getElementById("contactSelect");
             select.innerHTML = "";
             contacts.forEach(contact => {
@@ -151,9 +181,9 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            loadMenu();
             loadMessages();
             loadContacts();
-            // Evento para atualizar a lista conforme o usuário digita na barra de pesquisa
             document.getElementById("search").addEventListener("input", loadMessages);
         });
     </script>
