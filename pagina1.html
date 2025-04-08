@@ -220,17 +220,17 @@
         function openContactInfoModal(index) {
             const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
             const contact = contacts[index];
-            let infoHTML = `<img src="${contact.photo}" class="contact-photo"><br>`;
+            let infoHTML = <img src="${contact.photo}" class="contact-photo"><br>;
             for (const key in contact) {
                 if (key !== 'photo' && key !== 'documents') {
-                    infoHTML += `<strong>${key}:</strong> ${contact[key]}<br>`;
+                    infoHTML += <strong>${key}:</strong> ${contact[key]}<br>;
                 }
             }
             document.getElementById("contact-info").innerHTML = infoHTML;
             let docLinks = '';
             if (contact.documents && contact.documents.length > 0) {
                 contact.documents.forEach((doc, i) => {
-                    docLinks += `<a href="${doc}" download>Documento ${i + 1}</a><br>`;
+                    docLinks += <a href="${doc}" download>Documento ${i + 1}</a><br>;
                 });
             }
             document.getElementById("document-links").innerHTML = docLinks;
@@ -242,12 +242,9 @@
         }
 
        function saveContact() {
-    const nome = document.getElementById("nome").value;
-    const contatos = JSON.parse(localStorage.getItem("contatos") || "[]");
-    contatos.push({ nome });
-    localStorage.setItem("contatos", JSON.stringify(contatos));
-    alert("Contato salvo!");
-}
+    const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+    const reader = new FileReader();
+    const photoFile = document.getElementById("photo").files[0];
     
     reader.onload = function(e) {
         const photoData = e.target.result;
@@ -374,7 +371,7 @@
             const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
             let csv = "Nome,Telefone,E-mail,Instagram,Cidade,Prioridade,Data de Nascimento,Última Conversa,Cargo Ministerial,Ministério,Grupo\n";
             contacts.forEach(c => {
-                csv += `${c.name},${c.phone},${c.email},${c.instagram},${c.city},${c.priority},${c.birthDate},${c.lastConversation},${c.ministerialPosition},${c.ministry},${c.group}\n`;
+                csv += ${c.name},${c.phone},${c.email},${c.instagram},${c.city},${c.priority},${c.birthDate},${c.lastConversation},${c.ministerialPosition},${c.ministry},${c.group}\n;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
