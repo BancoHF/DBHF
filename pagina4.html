@@ -222,20 +222,25 @@
             if (!stored[contact]) stored[contact] = [];
 
             Array.from(files).forEach(file => {
-                stored[contact].push({
-                    nome: file.name,
-                    tipo: file.type,
-                    tamanho: file.size,
-                    importancia: parseInt(importance),
-                    data: new Date().toISOString()
-                });
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    stored[contact].push({
+                        nome: file.name,
+                        tipo: file.type,
+                        tamanho: file.size,
+                        importancia: parseInt(importance),
+                        data: new Date().toISOString(),
+                        conteudo: e.target.result
+                    });
+                    localStorage.setItem('documentos', JSON.stringify(stored));
+                    renderDocuments();
+                };
+                reader.readAsDataURL(file);
             });
 
-            localStorage.setItem('documentos', JSON.stringify(stored));
             alert("Documento(s) salvo(s)!");
             document.getElementById('fileInput').value = "";
             document.getElementById('importance').value = "";
-            renderDocuments();
         }
 
         function deleteDocument(contato, index) {
