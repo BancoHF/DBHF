@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,17 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BDHF</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        #login-screen { position: fixed; width: 100%; height: 100%; background: white; display: flex; justify-content: center; align-items: center; }
-        #login-box { text-align: center; padding: 20px; border: 1px solid #ccc; }
-        header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: relative; }
-        button { padding: 10px; cursor: pointer; }
-        main { background: white; padding: 20px; min-height: 300px; }
-        footer { border-top: 2px solid black; text-align: center; padding: 10px; }
-        #nav-menu { display: none; background: white; position: absolute; top: 50px; right: 10px; border: 1px solid black; padding: 10px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #login-screen {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #login-box {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+
+        header {
+            background: navy;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        button {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        main {
+            background: white;
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        footer {
+            border-top: 2px solid black;
+            text-align: center;
+            padding: 10px;
+        }
+
+        #nav-menu {
+            display: none;
+            background: #003366;
+            position: absolute;
+            top: 100%;
+            right: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 999;
+            min-width: 200px;
+        }
+
+        #nav-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        #nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        #nav-menu a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body onload="verifyAccess()">
+    <!-- Tela de login -->
     <div id="login-screen">
         <div id="login-box">
             <h2>Digite o código de acesso</h2>
@@ -24,33 +97,34 @@
             <button onclick="checkAccess()">Entrar</button>
         </div>
     </div>
-    
+
+    <!-- Conteúdo principal -->
     <div id="content" style="display: none;">
         <header>
             <h1>BDHF</h1>
             <button onclick="toggleMenu()">Menu</button>
             <div id="nav-menu"></div>
         </header>
-        
+
         <main>
             <p>Segue lá - https://www.instagram.com/_david__amorim_?igsh=MXJkMXcyNTg4bThjcw==</p>
-        <p>je can speak six langues, pero ich non facio isso funktionieren!</p>
-             <p>Páginas ainda em desenvolvimento, algumas funcionalidades podem não funcionar como o esperado.</p>
+            <p>je can speak six langues, pero ich non facio isso funktionieren!</p>
+            <p>Páginas ainda em desenvolvimento, algumas funcionalidades podem não funcionar como o esperado.</p>
             <p>Estamos trabalhando a fim de tornar a gestão mais facilitada e eficiente.</p>
             <p>Buscamos trazer a você candidato uma forma mais facilitada de gerir sua candidatura e futura gestão.</p>
             <p>Com prazer a equipe πrados essa inovadora plataforma!</p>
         </main>
-        
+
         <footer>
             <p>© 2025 BDHF - Todos os direitos reservados.</p>
         </footer>
     </div>
-    
+
     <script>
         function checkAccess() {
             let code = document.getElementById("access-code").value;
-            if (code === atob("NjMzMTU2")) { // Código '633156' escondido com Base64
-                localStorage.setItem("accessGranted", "true"); // Armazena o acesso
+            if (code === atob("NjMzMTU2")) { // Código: 633156
+                localStorage.setItem("accessGranted", "true");
                 document.getElementById("login-screen").style.display = "none";
                 document.getElementById("content").style.display = "block";
                 generateMenu();
@@ -68,18 +142,14 @@
         }
 
         function toggleMenu() {
-            let menu = document.getElementById("nav-menu");
-            if (menu.style.display === "block") {
-                menu.style.display = "none";
-            } else {
-                menu.style.display = "block";
-            }
+            const menu = document.getElementById("nav-menu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
         }
 
         function generateMenu() {
-            let menu = document.getElementById("nav-menu");
+            const menu = document.getElementById("nav-menu");
             menu.innerHTML = `
-          <ul>
+                <ul>
                     <li><a href="index.html">Página Inicial</a></li>
                     <li><a href="pagina1.html">Cadastro de Contatos</a></li>
                     <li><a href="pagina2.html">---</a></li>
@@ -92,9 +162,17 @@
                     <li><a href="pagina9.html">---</a></li>
                     <li><a href="pagina10.html">---</a></li>
                 </ul>
-            }
             `;
         }
+
+        // Fecha o menu se clicar fora dele
+        document.addEventListener("click", function (e) {
+            const menu = document.getElementById("nav-menu");
+            const button = document.querySelector("button[onclick='toggleMenu()']");
+            if (!menu.contains(e.target) && !button.contains(e.target)) {
+                menu.style.display = "none";
+            }
+        });
     </script>
 </body>
 </html>
