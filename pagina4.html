@@ -3,110 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página 4 - Gestão de Documentos</title>
+    <title>Gestão de Documentos</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        header { background: navy; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        button { padding: 10px; cursor: pointer; }
-        main { background: white; padding: 20px; min-height: 300px; }
-        .hidden { display: none; }
-        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); display: none; width: 50%; }
-        .modal .close-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; font-size: 18px; background: red; color: white; padding: 5px; border: none; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            color: #212529;
+        }
+        header {
+            background: #1e3a8a;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #274baf;
+        }
+        main {
+            padding: 20px;
+            max-width: 1000px;
+            margin: auto;
+        }
+        footer {
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            padding: 15px;
+            background: #ffffff;
+            color: #6c757d;
+        }
+        #sideMenuBtn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
+            background-color: #1e3a8a;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        #sideMenu {
+            position: fixed;
+            right: -250px;
+            top: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #1e3a8a;
+            color: white;
+            z-index: 1090;
+            transition: right 0.3s ease;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        #sideMenu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #sideMenu ul li {
+            margin: 15px 0;
+        }
+        #sideMenu ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        #sideMenu ul li a:hover {
+            text-decoration: underline;
+        }
+        #sideMenu.open {
+            right: 0;
+        }
+        #sideMenu .close-btn {
+            background: transparent;
+            color: white;
+            border: none;
+            font-size: 22px;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            cursor: pointer;
+        }
+        #uploadForm {
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .file-entry {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-entry span {
+            flex: 1;
+        }
+        .file-entry button {
+            margin-left: 10px;
+            background: #dc3545;
+        }
+        #documentsList {
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .top-bar .left, .top-bar .right {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
+    <button id="sideMenuBtn" onclick="toggleSideMenu()">☰</button>
+    <div id="sideMenu">
+        <button class="close-btn" onclick="toggleSideMenu()">×</button>
+        <h2 style="margin-top: 40px;">Menu de Páginas</h2>
+        <ul>
+            <li><a href="index.html">Página inicial</a></li>
+            <li><a href="pagina1.html">Cadastro de contatos</a></li>
+            <li><a href="pagina2.html">Gestão de Documentos</a></li>
+            <li><a href="pagina3.html">Atendimentos</a></li>
+            <li><a href="pagina6.html">Mensagens</a></li>
+        </ul>
+    </div>
+
     <header>
-        <h1>Página 4 - Gestão de Documentos</h1>
+        <h1>Gestão de Documentos</h1>
     </header>
-    
+
     <main>
-        <button onclick="showAddDocumentForm()">Adicionar Documento</button>
-        
-        <div id="document-form" class="hidden">
-            <label>Nome do Arquivo:</label>
-            <input type="text" id="docName">
-            <label>Selecionar Arquivo:</label>
-            <input type="file" id="docFile">
-            <label>Vincular ao Contato:</label>
+        <div class="top-bar">
+            <div class="left">
+                <input type="text" id="searchInput" placeholder="Pesquisar documentos por nome..." style="padding: 10px; width: 300px; border-radius: 5px; border: 1px solid #ccc;">
+                <button onclick="toggleForm()">＋</button>
+            </div>
+            <div class="right">
+                <!-- Ordenação removida daqui pois será inserida na subpágina -->
+            </div>
+        </div>
+
+        <div id="uploadForm" class="hidden">
+            <label for="contactSelect">Selecionar contato:</label>
             <select id="contactSelect"></select>
+            <br><br>
+            <label for="importance">Importância (1 a 7):</label>
+            <input type="number" id="importance" min="1" max="7" required>
+            <br><br>
+            <input type="file" id="fileInput" multiple>
+            <br><br>
             <button onclick="addDocument()">Salvar Documento</button>
         </div>
-        
-        <div id="document-list"></div>
-        
-        <div id="document-modal" class="modal">
-            <button class="close-btn" onclick="closeModal()">X</button>
-            <div id="modal-content"></div>
-        </div>
+
+        <div id="documentsList"></div>
     </main>
-    
+
+    <footer>
+        <p>© 2025 BDHF - Todos os direitos reservados.</p>
+    </footer>
+
     <script>
-        function showAddDocumentForm() {
-            document.getElementById("document-form").classList.toggle("hidden");
-            loadContacts();
+        function toggleSideMenu() {
+            const menu = document.getElementById('sideMenu');
+            const btn = document.getElementById('sideMenuBtn');
+            const isOpen = menu.classList.toggle('open');
+            btn.style.display = isOpen ? 'none' : 'block';
         }
 
-        function loadContacts() {
-            let contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            let select = document.getElementById("contactSelect");
-            select.innerHTML = contacts.map(contact => <option value="${contact.name}">${contact.name}</option>).join('');
+        function toggleForm() {
+            document.getElementById('uploadForm').classList.toggle('hidden');
         }
+
+        const contacts = JSON.parse(localStorage.getItem('contatos') || '[]');
+        const contactSelect = document.getElementById('contactSelect');
+        contacts.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.nome;
+            option.textContent = c.nome;
+            contactSelect.appendChild(option);
+        });
 
         function addDocument() {
-            let docName = document.getElementById("docName").value;
-            let docFile = document.getElementById("docFile").files[0];
-            let contact = document.getElementById("contactSelect").value;
-            let fileData = null;
-            
-            if (docFile) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    fileData = e.target.result;
-                    saveDocument({ docName, contact, fileData, fileType: docFile.type });
-                };
-                reader.readAsDataURL(docFile);
+            const contact = contactSelect.value;
+            const importance = document.getElementById('importance').value;
+            const files = document.getElementById('fileInput').files;
+
+            if (!contact || !importance || files.length === 0) return alert("Preencha todos os campos!");
+
+            const stored = JSON.parse(localStorage.getItem('documentos') || '{}');
+            if (!stored[contact]) stored[contact] = [];
+
+            Array.from(files).forEach(file => {
+                stored[contact].push({
+                    nome: file.name,
+                    tipo: file.type,
+                    tamanho: file.size,
+                    importancia: parseInt(importance),
+                    data: new Date().toISOString()
+                });
+            });
+
+            localStorage.setItem('documentos', JSON.stringify(stored));
+            alert("Documento(s) salvo(s)!");
+            document.getElementById('fileInput').value = "";
+            document.getElementById('importance').value = "";
+            renderDocuments();
+        }
+
+        function deleteDocument(contato, index) {
+            const stored = JSON.parse(localStorage.getItem('documentos'));
+            stored[contato].splice(index, 1);
+            localStorage.setItem('documentos', JSON.stringify(stored));
+            renderDocuments();
+        }
+
+        function renderDocuments() {
+            const stored = JSON.parse(localStorage.getItem('documentos') || '{}');
+            const list = document.getElementById('documentsList');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            list.innerHTML = '';
+
+            for (const contato in stored) {
+                const matchedDocs = stored[contato].filter(doc => doc.nome.toLowerCase().includes(searchTerm));
+                if (matchedDocs.length === 0) continue;
+
+                const div = document.createElement('div');
+                const link = document.createElement('a');
+                link.href = `subpagina.html?contato=${encodeURIComponent(contato)}`;
+                link.textContent = contato;
+                link.style.display = 'block';
+                link.style.margin = '10px 0';
+                div.appendChild(link);
+                list.appendChild(div);
             }
         }
 
-        function saveDocument(document) {
-            let documents = JSON.parse(localStorage.getItem("documents")) || [];
-            documents.push(document);
-            localStorage.setItem("documents", JSON.stringify(documents));
-            document.getElementById("document-form").classList.add("hidden");
-            loadDocuments();
-        }
+        document.getElementById('searchInput').addEventListener('input', renderDocuments);
 
-        function loadDocuments() {
-            let documentList = document.getElementById("document-list");
-            documentList.innerHTML = "";
-            let documents = JSON.parse(localStorage.getItem("documents")) || [];
-            
-            documents.forEach((doc, index) => {
-                let div = document.createElement("div");
-                div.innerHTML = <strong>${doc.contact}</strong> - ${doc.docName} <button onclick="showDocumentDetails(${index})">Abrir</button>;
-                documentList.appendChild(div);
-            });
-        }
-
-        function showDocumentDetails(index) {
-            let documents = JSON.parse(localStorage.getItem("documents")) || [];
-            let document = documents[index];
-            
-            let modalContent = document.getElementById("modal-content");
-            modalContent.innerHTML = <h3>${document.docName}</h3><p>Vinculado a: ${document.contact}</p>;
-            modalContent.innerHTML += <a href="${document.fileData}" download="${document.docName}">Baixar Arquivo</a>;
-            
-            document.getElementById("document-modal").style.display = "block";
-        }
-
-        function closeModal() {
-            document.getElementById("document-modal").style.display = "none";
-        }
-
-        window.onload = function() {
-            loadContacts();
-            loadDocuments();
-        };
+        renderDocuments();
     </script>
 </body>
 </html>
