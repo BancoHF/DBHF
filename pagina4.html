@@ -201,20 +201,30 @@
         function toggleForm() {
             document.getElementById('uploadForm').classList.toggle('hidden');
         }
-function loadContacts() {
-            contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            let select = document.getElementById("contactSelect");
-            select.innerHTML = "";
-            contacts.forEach(contact => {
-                let option = document.createElement("option");
-                option.value = contact.name;
-                option.textContent = contact.name;
-                select.appendChild(option);
+
+        // FORÇA sincronização com contatos da pagina1
+        window.addEventListener('storage', e => {
+            if (e.key === 'contatos') {
+                updateContactSelect();
+            }
+        });
+
+        function updateContactSelect() {
+            const contacts = JSON.parse(localStorage.getItem('contatos') || '[]');
+            const contactSelect = document.getElementById('contactSelect');
+            contactSelect.innerHTML = '';
+            contacts.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.nome;
+                option.textContent = c.nome;
+                contactSelect.appendChild(option);
             });
         }
 
+        updateContactSelect();
+
         function addDocument() {
-            const contact = contactSelect.value;
+            const contact = document.getElementById('contactSelect').value;
             const importance = document.getElementById('importance').value;
             const files = document.getElementById('fileInput').files;
 
