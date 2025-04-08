@@ -196,200 +196,213 @@
         </ul>
     </div>
 
-    <script>
-        let editIndex = null;
+    <!-- CÓDIGO CORRIGIDO -->
+<script>
+    let editIndex = null;
 
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-        }
+    function toggleMenu() {
+        const menu = document.getElementById("menu");
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
 
-        function toggleMenu() {
-            const menu = document.getElementById("menu");
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
-        }
+    function openAddContactModal() {
+        editIndex = null;
+        document.getElementById("add-contact-modal").style.display = "block";
 
-        function openAddContactModal() {
-            editIndex = null;
-            document.getElementById("add-contact-modal").style.display = "block";
-        }
+        // Limpar campos
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("instagram").value = "";
+        document.getElementById("city").value = "";
+        document.getElementById("priority").value = "";
+        document.getElementById("birthDate").value = "";
+        document.getElementById("lastConversation").value = "";
+        document.getElementById("ministerialPosition").value = "";
+        document.getElementById("ministry").value = "";
+        document.getElementById("group").value = "";
+        document.getElementById("photo").value = "";
+        document.getElementById("documents").value = "";
+    }
 
-        function closeAddContactModal() {
-            document.getElementById("add-contact-modal").style.display = "none";
-        }
+    function closeAddContactModal() {
+        document.getElementById("add-contact-modal").style.display = "none";
+    }
 
-        function openContactInfoModal(index) {
-            const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            const contact = contacts[index];
-            let infoHTML = <img src="${contact.photo}" class="contact-photo"><br>;
-            for (const key in contact) {
-                if (key !== 'photo' && key !== 'documents') {
-                    infoHTML += <strong>${key}:</strong> ${contact[key]}<br>;
-                }
+    function openContactInfoModal(index) {
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        const contact = contacts[index];
+        let infoHTML = `<img src="${contact.photo}" class="contact-photo"><br>`;
+        for (const key in contact) {
+            if (key !== 'photo' && key !== 'documents') {
+                infoHTML += `<strong>${key}:</strong> ${contact[key]}<br>`;
             }
-            document.getElementById("contact-info").innerHTML = infoHTML;
-            let docLinks = '';
-            if (contact.documents && contact.documents.length > 0) {
-                contact.documents.forEach((doc, i) => {
-                    docLinks += <a href="${doc}" download>Documento ${i + 1}</a><br>;
-                });
+        }
+        document.getElementById("contact-info").innerHTML = infoHTML;
+
+        let docLinks = '';
+        if (contact.documents && contact.documents.length > 0) {
+            contact.documents.forEach((doc, i) => {
+                docLinks += `<a href="${doc}" download>Documento ${i + 1}</a><br>`;
+            });
+        }
+        document.getElementById("document-links").innerHTML = docLinks;
+        document.getElementById("contact-info-modal").style.display = "block";
+    }
+
+    function closeContactInfoModal() {
+        document.getElementById("contact-info-modal").style.display = "none";
+    }
+
+    function saveContact() {
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        const reader = new FileReader();
+        const photoFile = document.getElementById("photo").files[0];
+
+        reader.onload = function(e) {
+            const photoData = e.target.result;
+            const documents = Array.from(document.getElementById("documents").files).map(file => URL.createObjectURL(file));
+
+            const newContact = {
+                name: document.getElementById("name").value,
+                phone: document.getElementById("phone").value,
+                email: document.getElementById("email").value,
+                instagram: document.getElementById("instagram").value,
+                city: document.getElementById("city").value,
+                priority: document.getElementById("priority").value,
+                birthDate: document.getElementById("birthDate").value,
+                lastConversation: document.getElementById("lastConversation").value,
+                ministerialPosition: document.getElementById("ministerialPosition").value,
+                ministry: document.getElementById("ministry").value,
+                group: document.getElementById("group").value,
+                photo: photoData,
+                documents: documents
+            };
+
+            if (editIndex !== null) {
+                contacts[editIndex] = newContact;
+            } else {
+                contacts.push(newContact);
             }
-            document.getElementById("document-links").innerHTML = docLinks;
-            document.getElementById("contact-info-modal").style.display = "block";
-        }
 
-        function closeContactInfoModal() {
-            document.getElementById("contact-info-modal").style.display = "none";
-        }
-
-       function saveContact() {
-    const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-    const reader = new FileReader();
-    const photoFile = document.getElementById("photo").files[0];
-    
-    reader.onload = function(e) {
-        const photoData = e.target.result;
-        const documents = Array.from(document.getElementById("documents").files).map(file => URL.createObjectURL(file));
-        
-        const newContact = {
-            name: document.getElementById("name").value,
-            phone: document.getElementById("phone").value,
-            email: document.getElementById("email").value,
-            instagram: document.getElementById("instagram").value,
-            city: document.getElementById("city").value,
-            priority: document.getElementById("priority").value,
-            birthDate: document.getElementById("birthDate").value,
-            lastConversation: document.getElementById("lastConversation").value,
-            ministerialPosition: document.getElementById("ministerialPosition").value,
-            ministry: document.getElementById("ministry").value,
-            group: document.getElementById("group").value,
-            photo: photoData,
-            documents: documents
+            localStorage.setItem("contacts", JSON.stringify(contacts));
+            closeAddContactModal();
+            loadContacts();
         };
 
-        if (editIndex !== null) {
-            contacts[editIndex] = newContact;
+        if (photoFile) {
+            reader.readAsDataURL(photoFile);
         } else {
-            contacts.push(newContact);
+            reader.onload({ target: { result: '' } });
         }
-
-        localStorage.setItem("contacts", JSON.stringify(contacts));
-        closeAddContactModal();
-        loadContacts();
-    };
-
-    if (photoFile) {
-        reader.readAsDataURL(photoFile);
-    } else {
-        reader.onload({ target: { result: '' } });
     }
-}
 
-
-        function loadContacts() {
-            const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            const contactList = document.getElementById("contact-list");
-            contactList.innerHTML = "";
-            contacts.forEach((contact, index) => {
-                contactList.innerHTML += `
-                    <div class="contact-card">
-                        <div style="display: flex; align-items: center;">
-                            <img src="${contact.photo}" class="contact-photo">
-                            <div>
-                                <strong>${contact.name}</strong><br>${contact.city} - ${contact.ministerialPosition}
-                            </div>
-                        </div>
+    function loadContacts() {
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        const contactList = document.getElementById("contact-list");
+        contactList.innerHTML = "";
+        contacts.forEach((contact, index) => {
+            contactList.innerHTML += `
+                <div class="contact-card">
+                    <div style="display: flex; align-items: center;">
+                        <img src="${contact.photo}" class="contact-photo">
                         <div>
-                            <button onclick="openContactInfoModal(${index})">Info</button>
-                            <button onclick="editContact(${index})">Atualizar</button>
-                            <button onclick="deleteContact(${index})">Excluir</button>
+                            <strong>${contact.name}</strong><br>${contact.city} - ${contact.ministerialPosition}
                         </div>
                     </div>
-                `;
-            });
-        }
-
-        function editContact(index) {
-            const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            const contact = contacts[index];
-            document.getElementById("Nome").value = contact.name;
-            document.getElementById("Telefone").value = contact.phone;
-            document.getElementById("Email").value = contact.email;
-            document.getElementById("Instagram").value = contact.instagram;
-            document.getElementById("Cidade").value = contact.city;
-            document.getElementById("Prioridade").value = contact.priority;
-            document.getElementById("Aniversário").value = contact.birthDate;
-            document.getElementById("Última conversa").value = contact.lastConversation;
-            document.getElementById("Cargo ministerial").value = contact.ministerialPosition;
-            document.getElementById("Ministério").value = contact.ministry;
-            document.getElementById("Grupo").value = contact.group;
-            editIndex = index;
-            openAddContactModal();
-        }
-
-        function deleteContact(index) {
-            const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            if (confirm("Tem certeza que deseja excluir este contato?")) {
-                contacts.splice(index, 1);
-                localStorage.setItem("contacts", JSON.stringify(contacts));
-                loadContacts();
-            }
-        }
-
-        function searchContacts() {
-            const query = document.getElementById("search").value.toLowerCase();
-            const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            const filtered = contacts.filter(c => c.name.toLowerCase().includes(query) || c.city.toLowerCase().includes(query));
-            const contactList = document.getElementById("contact-list");
-            contactList.innerHTML = "";
-            filtered.forEach((contact, index) => {
-                contactList.innerHTML += `
-                    <div class="contact-card">
-                        <div style="display: flex; align-items: center;">
-                            <img src="${contact.photo}" class="contact-photo">
-                            <div>
-                                <strong>${contact.name}</strong><br>${contact.city} - ${contact.ministerialPosition}
-                            </div>
-                        </div>
-                        <div>
-                            <button onclick="openContactInfoModal(${index})">Info</button>
-                            <button onclick="editContact(${index})">Atualizar</button>
-                            <button onclick="deleteContact(${index})">Excluir</button>
-                        </div>
+                    <div>
+                        <button onclick="openContactInfoModal(${index})">Info</button>
+                        <button onclick="editContact(${index})">Atualizar</button>
+                        <button onclick="deleteContact(${index})">Excluir</button>
                     </div>
-                `;
-            });
-        }
+                </div>
+            `;
+        });
+    }
 
-        function sortContacts() {
-            const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            contacts.sort((a, b) => a.name.localeCompare(b.name));
+    function editContact(index) {
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        const contact = contacts[index];
+        document.getElementById("name").value = contact.name;
+        document.getElementById("phone").value = contact.phone;
+        document.getElementById("email").value = contact.email;
+        document.getElementById("instagram").value = contact.instagram;
+        document.getElementById("city").value = contact.city;
+        document.getElementById("priority").value = contact.priority;
+        document.getElementById("birthDate").value = contact.birthDate;
+        document.getElementById("lastConversation").value = contact.lastConversation;
+        document.getElementById("ministerialPosition").value = contact.ministerialPosition;
+        document.getElementById("ministry").value = contact.ministry;
+        document.getElementById("group").value = contact.group;
+        editIndex = index;
+        openAddContactModal();
+    }
+
+    function deleteContact(index) {
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        if (confirm("Tem certeza que deseja excluir este contato?")) {
+            contacts.splice(index, 1);
             localStorage.setItem("contacts", JSON.stringify(contacts));
             loadContacts();
         }
+    }
 
-        function exportContactsCSV() {
-            const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
-            let csv = "Nome,Telefone,E-mail,Instagram,Cidade,Prioridade,Data de Nascimento,Última Conversa,Cargo Ministerial,Ministério,Grupo\n";
-            contacts.forEach(c => {
-                csv += ${c.name},${c.phone},${c.email},${c.instagram},${c.city},${c.priority},${c.birthDate},${c.lastConversation},${c.ministerialPosition},${c.ministry},${c.group}\n;
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "contatos.csv";
-            link.click();
-        }
+    function searchContacts() {
+        const query = document.getElementById("search").value.toLowerCase();
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        const filtered = contacts.filter(c => c.name.toLowerCase().includes(query) || c.city.toLowerCase().includes(query));
+        const contactList = document.getElementById("contact-list");
+        contactList.innerHTML = "";
+        filtered.forEach((contact, index) => {
+            contactList.innerHTML += `
+                <div class="contact-card">
+                    <div style="display: flex; align-items: center;">
+                        <img src="${contact.photo}" class="contact-photo">
+                        <div>
+                            <strong>${contact.name}</strong><br>${contact.city} - ${contact.ministerialPosition}
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="openContactInfoModal(${index})">Info</button>
+                        <button onclick="editContact(${index})">Atualizar</button>
+                        <button onclick="deleteContact(${index})">Excluir</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
 
-        function downloadContactInfo() {
-            const info = document.getElementById("contact-info").innerText;
-            const blob = new Blob([info], { type: 'text/plain;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "contato.txt";
-            link.click();
-        }
+    function sortContacts() {
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        contacts.sort((a, b) => a.name.localeCompare(b.name));
+        localStorage.setItem("contacts", JSON.stringify(contacts));
+        loadContacts();
+    }
 
-        window.onload = loadContacts;
-    </script>
+    function exportContactsCSV() {
+        const contacts = JSON.parse(localStorage.getItem("contacts")) || [];
+        let csv = "Nome,Telefone,E-mail,Instagram,Cidade,Prioridade,Data de Nascimento,Última Conversa,Cargo Ministerial,Ministério,Grupo\n";
+        contacts.forEach(c => {
+            csv += `${c.name},${c.phone},${c.email},${c.instagram},${c.city},${c.priority},${c.birthDate},${c.lastConversation},${c.ministerialPosition},${c.ministry},${c.group}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "contatos.csv";
+        link.click();
+    }
+
+    function downloadContactInfo() {
+        const info = document.getElementById("contact-info").innerText;
+        const blob = new Blob([info], { type: 'text/plain;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "contato.txt";
+        link.click();
+    }
+
+    window.onload = loadContacts;
+</script>
+
 </body>
 </html>
