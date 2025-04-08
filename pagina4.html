@@ -266,7 +266,30 @@
                 link.textContent = `${contato} (${matchedDocs.length})`;
                 link.style.display = 'block';
                 link.style.margin = '10px 0';
+                link.style.fontWeight = 'bold';
                 div.appendChild(link);
+
+                matchedDocs.forEach((doc, index) => {
+                    const docDiv = document.createElement('div');
+                    docDiv.className = 'file-entry';
+
+                    const preview = document.createElement('a');
+                    preview.href = doc.conteudo;
+                    preview.target = '_blank';
+                    preview.textContent = doc.nome;
+
+                    const span = document.createElement('span');
+                    span.appendChild(preview);
+
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = 'Excluir';
+                    delBtn.onclick = () => deleteDocument(contato, stored[contato].indexOf(doc));
+
+                    docDiv.appendChild(span);
+                    docDiv.appendChild(delBtn);
+                    div.appendChild(docDiv);
+                });
+
                 list.appendChild(div);
             }
         }
