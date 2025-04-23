@@ -143,6 +143,11 @@
             display: flex;
             align-items: center;
         }
+        mark {
+            background-color: yellow;
+            padding: 0 3px;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body>
@@ -225,6 +230,7 @@
 
         window.addEventListener('storage', e => {
             if (e.key === 'contatos') updateContactSelect();
+            if (e.key === 'documentos') renderDocuments();
         });
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -237,12 +243,21 @@
             const importance = document.getElementById('importance').value;
             const files = document.getElementById('fileInput').files;
 
-            if (!contact || !importance || files.length === 0) return alert("Preencha todos os campos!");
+            if (!contact || !importance || files.length === 0) {
+                alert("Preencha todos os campos!");
+                return;
+            }
 
+            const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg'];
             const stored = JSON.parse(localStorage.getItem('documentos') || '{}');
             if (!stored[contact]) stored[contact] = [];
 
             Array.from(files).forEach(file => {
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`Tipo de arquivo não permitido: ${file.name}`);
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     stored[contact].push({
@@ -278,7 +293,10 @@
             list.innerHTML = '';
 
             for (const contato in stored) {
-                const matchedDocs = stored[contato].filter(doc => doc.nome.toLowerCase().includes(searchTerm));
+                const matchedDocs = stored[contato]
+                    .filter(doc => doc.nome.toLowerCase().includes(searchTerm))
+                    .sort((a, b) => b.importancia - a.importancia);
+
                 if (matchedDocs.length === 0) continue;
 
                 const div = document.createElement('div');
@@ -297,14 +315,21 @@
                     const preview = document.createElement('a');
                     preview.href = doc.conteudo;
                     preview.target = '_blank';
-                    preview.textContent = doc.nome;
+
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    const highlighted = doc.nome.replace(regex, '<mark>$1</mark>');
+                    preview.innerHTML = highlighted;
 
                     const span = document.createElement('span');
                     span.appendChild(preview);
 
                     const delBtn = document.createElement('button');
                     delBtn.textContent = 'Excluir';
-                    delBtn.onclick = () => deleteDocument(contato, stored[contato].indexOf(doc));
+                    delBtn.onclick = () => {
+                        if (confirm("Tem certeza que deseja excluir este documento?")) {
+                            deleteDocument(contato, stored[contato].indexOf(doc));
+                        }
+                    };
 
                     docDiv.appendChild(span);
                     docDiv.appendChild(delBtn);
