@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Crescimento e Interações</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .filters, .report {
+            margin-bottom: 20px;
+        }
+        .filters input, .filters select, .filters button {
+            margin-right: 10px;
+        }
+        .report canvas {
+            width: 100%;
+            height: 400px;
+        }
+        .download-btn {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="filters">
+            <select id="periodo">
+                <option value="mensal">Mensal</option>
+                <option value="semanal">Semanal</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="anual">Anual</option>
+            </select>
+            <input type="text" id="grupo" placeholder="Grupo">
+            <input type="text" id="regiao" placeholder="Região">
+            <input type="text" id="lider" placeholder="Líder de Região">
+            <select id="tipoInteracao">
+                <option value="todos">Todos</option>
+                <option value="documentos">Documentos</option>
+                <option value="mensagens">Mensagens</option>
+                <option value="visitas">Visitas</option>
+            </select>
+            <button onclick="aplicarFiltros()">Aplicar Filtros</button>
+        </div>
+
+        <div class="report" id="reportContent">
+            <h2>Relatório - Crescimento e Interações</h2>
+            <canvas id="grafico"></canvas>
+        </div>
+
+        <div class="download-btn">
+            <button onclick="gerarPDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <script>
+        const allData = [
+            { name: "Jan", cadastros: 20, documentos: 5, mensagens: 10, grupo: "A", regiao: "Norte", lider: "João" },
+            { name: "Fev", cadastros: 35, documentos: 12, mensagens: 20, grupo: "B", regiao: "Sul", lider: "Maria" },
+            { name: "Mar", cadastros: 50, documentos: 15, mensagens: 30, grupo: "A", regiao: "Norte", lider: "João" },
+            { name: "Abr", cadastros: 65, documentos: 18, mensagens: 45, grupo: "B", regiao: "Sul", lider: "Maria" },
+        ];
+
+        let filtros = {
+            periodo: "mensal",
+            grupo: "",
+            regiao: "",
+            lider: "",
+            tipoInteracao: "todos",
+        };
+
+        function aplicarFiltros() {
+            filtros.grupo = document.getElementById('grupo').value;
+            filtros.regiao = document.getElementById('regiao').value;
+            filtros.lider = document.getElementById('lider').value;
+            filtros.tipoInteracao = document.getElementById('tipoInteracao').value;
+            filtros.periodo = document.getElementById('periodo').value;
+
+            let dadosFiltrados = allData.filter(item => {
+                return (
+                    (!filtros.grupo || item.grupo === filtros.grupo) &&
+                    (!filtros.regiao || item.regiao === filtros.regiao) &&
+                    (!filtros.lider || item.lider === filtros.lider)
+                );
+            });
+            
+            renderGrafico(dadosFiltrados);
+        }
+
+        function renderGrafico(dados) {
+            const ctx = document.getElementById('grafico').getContext('2d');
+            const labels = dados.map(d => d.name);
+            const cadastros = dados.map(d => d.cadastros);
+            const documentos = dados.map(d => d.documentos);
+            const mensagens = dados.map(d => d.mensagens);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Cadastros',
+                            data: cadastros,
+                            borderColor: '#8884d8',
+                            fill: false,
+                        },
+                        {
+                            label: 'Documentos',
+                            data: documentos,
+                            borderColor: '#82ca9d',
+                            fill: false,
+                        },
+                        {
+                            label: 'Mensagens',
+                            data: mensagens,
+                            borderColor: '#ffc658',
+                            fill: false,
+                        }
+                    ]
+                }
+            });
+        }
+
+        function gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const reportContent = document.getElementById('reportContent');
+            
+            // Usa o html2canvas para capturar o conteúdo da página e convertê-lo em imagem
+            html2canvas(reportContent).then(canvas => {
+                const imgData = canvas.toDataURL("image/png");
+                const pdf = new jsPDF();
+                pdf.addImage(imgData, 'PNG', 10, 10, 180, 160); // Ajuste da posição e tamanho
+                pdf.save("relatorio.pdf"); // Salva o PDF gerado
+            });
+        }
+
+        window.onload = () => {
+            aplicarFiltros(); // Apply filters on page load
+        };
+    </script>
+</body>
+</html>
